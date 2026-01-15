@@ -1,36 +1,151 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>معاينة الواقع المعزز الاحترافية</title>
-    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.3.0/model-viewer.min.js"></script>
+    <title>معاينة المنتج | تجربة احترافية</title>
+    
+    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
+
     <style>
-        body { margin: 0; padding: 0; }
-        model-viewer { width: 100%; height: 100vh; background-color: #f0f0f0; }
+        /* إعدادات الصفحة الأساسية لمنع التمرير غير المرغوب فيه */
+        body, html { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f5f5f5; }
+
+        model-viewer {
+            width: 100%;
+            height: 100%;
+            /* خلفية متدرجة احترافية */
+            background: radial-gradient(circle at center, #ffffff 0%, #e8e8e8 100%);
+            --poster-color: transparent;
+        }
+
+        /* --- تصميم زر الـ AR الاحترافي --- */
         .ar-button {
-            background-color: #007bff; color: white; border: none;
-            padding: 15px 30px; border-radius: 50px; font-family: sans-serif;
-            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
-            cursor: pointer; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            background-color: #222222; /* لون داكن فخم */
+            color: #ffffff;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 30px; /* حواف دائرية عصرية */
+            font-size: 16px;
+            font-weight: bold;
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.25); /* ظل ناعم */
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: transform 0.2s, background-color 0.2s;
+            z-index: 100;
+            white-space: nowrap;
+        }
+
+        .ar-button:active { transform: translateX(-50%) scale(0.95); }
+        .ar-button:focus { outline: none; }
+        
+        .ar-icon { width: 24px; height: 24px; fill: white; }
+
+        /* --- تصميم شريط التحميل (Loading Bar) --- */
+        #lazy-load-poster {
+            position: absolute; left: 0; right: 0; top: 0; bottom: 0;
+            background-size: contain; background-repeat: no-repeat; background-position: center;
+        }
+        #button-load {
+            background-repeat: no-repeat; background-size: 24px 24px; background-position: 6% 50%;
+            background-color: rgba(0, 0, 0, 0.5); color: white; cursor: pointer;
+            border-radius: 6px; display: inline-block; padding: 10px 18px 9px 40px;
+            font-weight: 500; box-shadow: 0 0 8px rgba(0,0,0,.2);
+            position: absolute; left: 50%; top: 50%; transform: translate3d(-50%, -50%, 0); z-index: 100;
+        }
+
+        /* --- تصميم الإشعار (Toast Notification) --- */
+        #toast-container {
+            visibility: hidden;
+            min-width: 250px;
+            background-color: #d9534f; /* لون أحمر هادئ للخطأ */
+            color: #fff;
+            text-align: center;
+            border-radius: 8px;
+            padding: 16px;
+            position: fixed;
+            z-index: 1000;
+            top: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            font-size: 15px;
+            opacity: 0;
+            transition: opacity 0.5s, top 0.5s;
+        }
+
+        #toast-container.show {
+            visibility: visible;
+            opacity: 1;
+            top: 50px;
         }
     </style>
 </head>
 <body>
 
     <model-viewer 
-        src="sofa_patricia.glb" 
+        id="viewer-3d"
+        src="model.glb" 
+        ios-src="model.usdz"
         ar 
         ar-modes="webxr scene-viewer quick-look" 
         camera-controls 
-        shadow-intensity="1" 
-        auto-rotate>
-        
-        <button slot="ar-button" class="ar-button">
+        shadow-intensity="1.5"
+        shadow-softness="0.8"
+        exposure="1"
+        auto-rotate
+        touch-action="pan-y"
+        style="--ar-button-display: block;"> <button slot="ar-button" class="ar-button" id="ar-btn">
+            <svg class="ar-icon" viewBox="0 0 24 24">
+                <path d="M5 3C3.34315 3 2 4.34315 2 6V18C2 19.6569 3.34315 21 5 21H19C20.6569 21 22 19.6569 22 18V6C22 4.34315 20.6569 3 19 3H5ZM19 5C19.5523 5 20 5.44772 20 6V18C20 18.5523 19.5523 19 19 19H5C4.44772 19 4 18.5523 4 18V6C4 5.44772 4.44772 5 5 5H19ZM12 7.5C10.6193 7.5 9.5 8.61929 9.5 10C9.5 11.3807 10.6193 12.5 12 12.5C13.3807 12.5 14.5 11.3807 14.5 10C14.5 8.61929 13.3807 7.5 12 7.5ZM7 15.5C7 14.6716 7.67157 14 8.5 14H15.5C16.3284 14 17 14.6716 17 15.5V16H7V15.5Z"/>
+            </svg>
             عرض في غرفتك (AR)
         </button>
+
+        <div id="lazy-load-poster" slot="poster"></div>
+        <div id="button-load" slot="poster-control">جاري تحميل المجسم...</div>
+
     </model-viewer>
 
-</body>
+    <div id="toast-container">عذراً، هاتفك لا يدعم تقنية الواقع المعزز، لكن يمكنك تصفح المنتج هنا!</div>
 
+    <script>
+        // المنطق البرمجي للتحقق من الدعم
+        const modelViewer = document.querySelector('#viewer-3d');
+        const arButton = document.querySelector('#ar-btn');
+        const toast = document.querySelector('#toast-container');
+
+        // وظيفة لإظهار الإشعار وإخفائه
+        function showToast(message) {
+            toast.innerText = message;
+            toast.className = "show";
+            setTimeout(function(){ toast.className = toast.className.replace("show", ""); }, 4000);
+        }
+
+        arButton.addEventListener('click', (event) => {
+            // نتحقق برمجياً: هل يستطيع هذا المتصفح تشغيل الـ AR؟
+            if (modelViewer.canActivateAR) {
+                // إذا نعم، اتركه يعمل بشكل طبيعي (المكتبة ستتولى الباقي)
+                console.log("AR is supported, launching...");
+            } else {
+                // إذا لا، هنا يتدخل كودنا لمنع الإحباط
+                console.log("AR not supported");
+                showToast("عذراً، هذا الجهاز لا يدعم تقنية AR، استمتع بالعرض ثلاثي الأبعاد!");
+            }
+        });
+
+        // تحسين: إخفاء شريط التحميل عند انتهاء التحميل
+        modelViewer.addEventListener('load', () => {
+            document.querySelector('#button-load').style.display = 'none';
+        });
+    </script>
+
+</body>
 </html>
+
